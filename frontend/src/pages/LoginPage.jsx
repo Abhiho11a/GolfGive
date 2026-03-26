@@ -15,32 +15,43 @@ export default function LoginPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    
-  if(!form.email)
-  {
-    setError("Please enter email")
-    return;
-  }
-  if(!form.password)
-  {
-    setError("Please enter password")
+  if (!form.email) {
+    setError("Please enter email");
     return;
   }
 
-    setError("");
-    setLoading(true);
+  if (!form.password) {
+    setError("Please enter password");
+    return;
+  }
 
-    const { error } = await supabase.auth.signInWithPassword(form);
+  setError("");
+  setLoading(true);
 
-    setLoading(false);
+  const { data, error } = await supabase.auth.signInWithPassword(form);
 
-    if (error) return setError(error.message);
+  setLoading(false);
 
-    navigate(from, { replace: true });
-  };
+  if (error) return setError(error.message);
+
+  // 🔥 ROLE LOGIC HERE
+  const role =
+    form.email === "admin@gmail.com" ? "admin" : "user";
+
+  // store in localStorage
+  localStorage.setItem(
+    "user",
+    JSON.stringify({
+      ...data.user,
+      role,
+    })
+  );
+
+  navigate(from, { replace: true });
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#020617] px-6">

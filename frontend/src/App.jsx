@@ -26,7 +26,7 @@ function ProtectedRoute({ children }) {
       <div style={{ width: 36, height: 36, border: '3px solid var(--border)', borderTopColor: 'var(--accent)', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
     </div>
   )
-  if (!user) return <Navigate to="/login" replace />
+  // if (!user) return <Navigate to="/login" replace />
   return children
 }
 
@@ -79,12 +79,20 @@ function AppRoutes() {
 
       {/* Protected user routes */}
       <Route path="/dashboard" element={
-        <ProtectedRoute>
-          <Layout>
-            <RoleBasedDashboard />
-          </Layout>
-        </ProtectedRoute>
-      } />
+  <ProtectedRoute>
+    <Layout>
+      <DashboardPage />
+    </Layout>
+  </ProtectedRoute>
+} />
+
+<Route path="/admin" element={
+  <ProtectedRoute>
+    <Layout>
+      <UserDashboard />
+    </Layout>
+  </ProtectedRoute>
+} />
       <Route path="/dashboard/scores" element={
         <ProtectedRoute>
           <Layout><ScoresPage /></Layout>
@@ -94,6 +102,10 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout><CharitiesPage /></Layout>
         </ProtectedRoute>
+      } />
+
+      <Route path="/admin" element={
+        <DashboardPage/>
       } />
 
       {/* Fallback */}

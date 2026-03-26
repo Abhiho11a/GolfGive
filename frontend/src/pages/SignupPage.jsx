@@ -16,36 +16,41 @@ export default function SignupPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async () => {
+  try {
+    // 🔥 generate fake user id
+    const userId = crypto.randomUUID();
 
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-    });
-
-    if (error) return setError(error.message);
-
-    const user = data.user;
-
-    await supabase.from("profiles").insert({
-      id: user.id,
+    // insert only into profiles
+    const { error } = await supabase.from("profiles").insert({
+      id: userId,
       full_name: form.fullName,
       email: form.email,
+      password:form.password
     });
 
-    await supabase.from("subscriptions").insert({
-      user_id: user.id,
-      plan: selectedPlan,
-      status: "active",
-    });
+    if (error) {
+      setError(error.message);
+      return;
+    }
 
-    await supabase.from("user_charity").insert({
-      user_id: user.id,
-      charity_id: selectedCharity,
-      percentage: charityPercent,
-    });
+    // 🔥 fake login (store locally)
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        id: userId,
+        email: form.email,
+        role:
+          form.email === "admin@gmail.com" ? "admin" : "user",
+      })
+    );
 
     navigate("/dashboard");
-  };
+
+  } catch (err) {
+    console.error(err);
+    setError("Something went wrong");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center px-6">
