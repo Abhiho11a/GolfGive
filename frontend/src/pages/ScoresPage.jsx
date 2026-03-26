@@ -1,161 +1,149 @@
-// src/pages/ScoresPage.jsx
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import api from '../lib/api'
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import api from "../lib/api";
 
 export default function ScoresPage() {
-  const [scores, setScores] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [editScore, setEditScore] = useState(null)
+  const [scores, setScores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [editScore, setEditScore] = useState(null);
   const [form, setForm] = useState({
-    score: '',
-    date: new Date().toISOString().split('T')[0],
-  })
-  const [error, setError] = useState('')
-  const [saving, setSaving] = useState(false)
+    score: "",
+    date: new Date().toISOString().split("T")[0],
+  });
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchScores()
-  }, [])
+    fetchScores();
+  }, []);
 
   async function fetchScores() {
     try {
-      const res = await api.get('/scores')
-      setScores(res.data?.scores || [])
+      const res = await api.get("/scores");
+      setScores(res.data?.scores || []);
     } catch (e) {
-      console.error(e)
+      console.error(e);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   function openAdd() {
-    setEditScore(null)
+    setEditScore(null);
     setForm({
-      score: '',
-      date: new Date().toISOString().split('T')[0],
-    })
-    setError('')
-    setShowModal(true)
+      score: "",
+      date: new Date().toISOString().split("T")[0],
+    });
+    setShowModal(true);
   }
 
   function openEdit(s) {
-    setEditScore(s)
-    setForm({ score: s.score, date: s.date })
-    setError('')
-    setShowModal(true)
+    setEditScore(s);
+    setForm({ score: s.score, date: s.date });
+    setShowModal(true);
   }
 
   async function handleSave(e) {
-    e.preventDefault()
-    const val = Number(form.score)
+    e.preventDefault();
+    const val = Number(form.score);
 
     if (isNaN(val) || val < 1 || val > 45) {
-      setError('Score must be between 1 and 45')
-      return
+      setError("Score must be between 1 and 45");
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
       if (editScore) {
-        await api.put(`/scores/${editScore.id}`, form)
+        await api.put(`/scores/${editScore.id}`, form);
       } else {
-        await api.post('/scores', form)
+        await api.post("/scores", form);
       }
-      setShowModal(false)
-      fetchScores()
+      setShowModal(false);
+      fetchScores();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save score')
+      setError(err.response?.data?.message || "Failed to save");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Delete this score?')) return
-    try {
-      await api.delete(`/scores/${id}`)
-      fetchScores()
-    } catch (e) {
-      console.error(e)
-    }
+    if (!window.confirm("Delete this score?")) return;
+    await api.delete(`/scores/${id}`);
+    fetchScores();
   }
 
   const avgScore = scores.length
-    ? (
-        scores.reduce((s, sc) => s + sc.score, 0) / scores.length
-      ).toFixed(1)
-    : '—'
+    ? (scores.reduce((s, sc) => s + sc.score, 0) / scores.length).toFixed(1)
+    : "—";
 
   const bestScore = scores.length
     ? Math.max(...scores.map((s) => s.score))
-    : '—'
+    : "—";
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-24">
-      {/* Header */}
-      <div className="flex flex-wrap justify-between items-start gap-4 mb-8">
+    <div className="min-h-screen bg-[#020617] text-white px-16 md:px-20 py-24">
+
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-10">
         <div>
-          <Link
-            to="/dashboard"
-            className="text-sm text-slate-500 hover:text-indigo-600"
-          >
+          <Link to="/dashboard" className="text-white/50 text-sm hover:text-indigo-400">
             ← Dashboard
           </Link>
-
           <h1 className="text-3xl font-bold mt-2">My Scores</h1>
-          <p className="text-sm text-slate-500">
-            Your last 5 Stableford scores.
-          </p>
+          <p className="text-white/50 text-sm">Track your performance</p>
         </div>
 
         <button
           onClick={openAdd}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700"
+          className="bg-indigo-500 px-4 py-2 rounded-xl hover:bg-indigo-600 transition"
         >
           + Add Score
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <Stat label="Scores" value={`${scores.length}/5`} />
-        <Stat label="Average" value={avgScore} />
-        <Stat label="Best" value={bestScore} />
+      {/* STATS */}
+      <div className="grid grid-cols-3 gap-4 mb-10">
+        <StatCard title="Total" value={`${scores.length}/5`} />
+        <StatCard title="Average" value={avgScore} />
+        <StatCard title="Best" value={bestScore} />
       </div>
 
-      {/* Scores */}
+      {/* LIST */}
       {loading ? (
-        <div className="text-center py-10">Loading...</div>
+        <Loader />
       ) : scores.length === 0 ? (
-        <div className="text-center py-10 border rounded-xl">
-          No scores yet
+        <div className="text-center py-20 text-white/50">
+          No scores yet 😢
         </div>
       ) : (
-        <div className="bg-white border rounded-xl overflow-hidden">
-          {scores.map((s, i) => (
+        <div className="space-y-4">
+          {scores.map((s) => (
             <div
               key={s.id}
-              className="flex justify-between items-center px-4 py-3 border-b hover:bg-slate-50"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-xl flex justify-between items-center hover:shadow-xl transition"
             >
               <div>
-                <div className="font-bold text-lg">{s.score}</div>
-                <div className="text-xs text-slate-500">
+                <p className="text-2xl font-bold text-indigo-400">
+                  {s.score}
+                </p>
+                <p className="text-sm text-white/50">
                   {new Date(s.date).toDateString()}
-                </div>
+                </p>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <button
                   onClick={() => openEdit(s)}
-                  className="text-sm text-indigo-600"
+                  className="text-indigo-400 hover:text-indigo-300"
                 >
                   Edit
                 </button>
                 <button
                   onClick={() => handleDelete(s.id)}
-                  className="text-sm text-red-500"
+                  className="text-red-400 hover:text-red-300"
                 >
                   Delete
                 </button>
@@ -167,63 +155,45 @@ export default function ScoresPage() {
 
       {/* MODAL */}
       {showModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={(e) =>
-            e.target === e.currentTarget && setShowModal(false)
-          }
-        >
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6 animate-[fadeUp_0.3s_ease]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">
-                {editScore ? 'Edit Score' : 'Add Score'}
-              </h2>
-              <button onClick={() => setShowModal(false)}>✕</button>
-            </div>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50">
+          <div className="bg-[#020617] border border-white/10 rounded-2xl p-6 w-full max-w-md animate-[fadeUp_0.3s]">
 
-            {error && (
-              <div className="mb-4 text-red-500 text-sm">{error}</div>
-            )}
+            <h2 className="text-xl font-bold mb-4">
+              {editScore ? "Edit Score" : "Add Score"}
+            </h2>
+
+            {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
             <form onSubmit={handleSave} className="space-y-4">
               <input
                 type="number"
-                min="1"
-                max="45"
-                required
                 value={form.score}
-                onChange={(e) =>
-                  setForm({ ...form, score: e.target.value })
-                }
-                placeholder="Score (1-45)"
-                className="w-full px-4 py-3 border rounded-xl text-center text-xl font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                onChange={(e) => setForm({ ...form, score: e.target.value })}
+                placeholder="Score"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-center text-xl outline-none"
               />
 
               <input
                 type="date"
-                required
                 value={form.date}
-                onChange={(e) =>
-                  setForm({ ...form, date: e.target.value })
-                }
-                className="w-full px-4 py-2 border rounded-xl"
+                onChange={(e) => setForm({ ...form, date: e.target.value })}
+                className="w-full px-4 py-2 rounded-xl bg-white/5 border border-white/10"
               />
 
               <div className="flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 border rounded-xl py-2"
+                  className="flex-1 border border-white/10 rounded-xl py-2"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-indigo-600 text-white rounded-xl py-2"
+                  className="flex-1 bg-indigo-500 rounded-xl py-2"
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  {saving ? "Saving..." : "Save"}
                 </button>
               </div>
             </form>
@@ -231,14 +201,24 @@ export default function ScoresPage() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-function Stat({ label, value }) {
+/* COMPONENTS */
+
+function StatCard({ title, value }) {
   return (
-    <div className="bg-white border rounded-xl p-4 text-center">
-      <div className="text-2xl font-bold">{value}</div>
-      <div className="text-sm text-slate-500">{label}</div>
+    <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-5 rounded-xl text-center">
+      <p className="text-white/50 text-sm">{title}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
     </div>
-  )
+  );
+}
+
+function Loader() {
+  return (
+    <div className="flex justify-center py-20">
+      <div className="w-10 h-10 border-4 border-white/20 border-t-indigo-500 rounded-full animate-spin"></div>
+    </div>
+  );
 }
