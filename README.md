@@ -19,8 +19,8 @@ Users can:
 
 Experience the platform live:
 
-🔗 **Frontend:** [https://golfgive.netlify.app/]
-🔗 **Backend API:** [https://golfgive-tpox.onrender.com]
+🔗 **Frontend:** https://golfgive.netlify.app/<br>
+🔗 **Backend API:** https://golfgive-tpox.onrender.com
 
 > ⚡ Note: Use demo credentials or sign up to explore full features.
 
