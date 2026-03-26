@@ -1,6 +1,6 @@
 // routes/index.js — all routes wired up
 import { Router } from 'express'
-import { requireAuth, requireSubscription, requireAdmin } from '../middleware/auth.js'
+import { requireAuth, requireSubscription, requireAdmin } from '../middleware/Auth.js'
 
 // Controllers
 import { getScores, addScore, updateScore, deleteScore } from '../controllers/scoresController.js'
